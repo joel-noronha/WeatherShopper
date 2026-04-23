@@ -46,13 +46,17 @@ def test_browser_launch():
     product_map = {}
 
     for product in products:
+        name = product.find_element(By.XPATH, './/p[contains(@class,"font-weight-bold")]').text
         price_text = product.find_element(By.XPATH, ".//p[contains(text(),'Price')]").text
         price = int(re.search(r'\d+', price_text).group())
 
         add_btn = product.find_element(By.TAG_NAME, "button")
 
         prices.append(price)
-        product_map[price] = add_btn
+        product_map[price] = {
+            "name": name,
+            "button": add_btn
+        }
     
     min_price = min(prices) 
     max_price = max(prices)
@@ -62,16 +66,32 @@ def test_browser_launch():
     print(min_price, max_price)
 
 
-    product_map[min_price].click()
-    product_map[max_price].click()
+    product_map[min_price]["button"].click()
+    product_map[max_price]["button"].click()
+
+    cart_items_added = [
+        product_map[min_price]["name"],
+        product_map[max_price]["name"]
+    ]
+
+    print("Items added:", cart_items_added)
 
     driver.find_element(By.CSS_SELECTOR, ".thin-text.nav-link").click()
     wait.until(EC.visibility_of_element_located((By.TAG_NAME, "table")))
 
     cart_items = driver.find_elements(By.XPATH, "//table/tbody/tr") 
+
+    cart_product_names = []
+    for item in cart_items:
+        name = item.find_element(By.XPATH, "./td[1]").text
+        cart_product_names.append(name)
+
+    print("Cart items:", cart_product_names)
     print("Cart count:",len(cart_items))
 
     assert len(cart_items) == 2
+    for expected_item in cart_items_added:
+        assert expected_item in cart_product_names, f"{expected_item} not found in cart"
 
     total_value = driver.find_element(By.ID, "total").text
     print(total_value)
@@ -113,7 +133,6 @@ def test_browser_launch():
     driver.find_element(By.ID, "submitButton").click()
     driver.switch_to.default_content()
     confirmation = wait.until(EC.presence_of_element_located((By.XPATH,"//h2[text()='PAYMENT SUCCESS']")))
-    time.sleep(6)
     print("Confirmation page reached:", confirmation.text)
     assert confirmation.is_displayed()
     driver.quit()
