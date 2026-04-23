@@ -30,22 +30,22 @@ class CartPage:
     def checkout(self):
         self.driver.find_element(*Locators.CHECKOUT_BTN).click()
     
-    def complete_payment(self):
+    def complete_payment(self,data):
         self.driver.switch_to.frame(
             self.driver.find_element(*Locators.FRAME)
         )
 
         self.wait.until(EC.visibility_of_element_located(Locators.EMAIL))
-        self.driver.find_element(*Locators.EMAIL).send_keys("test@test.com")
-        for digit in "4242424242424242":
+        self.driver.find_element(*Locators.EMAIL).send_keys(data["email"])
+        for digit in data["card_number"]:
             self.driver.find_element(*Locators.CARD).send_keys(digit)
             time.sleep(0.1)
         
-        for date in "12/26":
+        for date in data["expiry"]:
             self.driver.find_element(*Locators.EXPIRY).send_keys(date)
         
-        self.driver.find_element(*Locators.CVC).send_keys("123")
-        self.driver.find_element(*Locators.ZIP).send_keys("12345")
+        self.driver.find_element(*Locators.CVC).send_keys(data["cvc"])
+        self.driver.find_element(*Locators.ZIP).send_keys(data["zip"])
 
         self.driver.find_element(*Locators.SUBMIT).click()
         self.driver.switch_to.default_content()

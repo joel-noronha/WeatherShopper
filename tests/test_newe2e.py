@@ -3,8 +3,10 @@ from config.config import Config
 from pages.home_page import HomePage
 from pages.products_page import ProductsPage
 from pages.cart_page import CartPage
+from utils.json_reader import load_json
 
 def test_e2e():
+    data = load_json("testdata/data.json")
     driver = webdriver.Chrome()
     driver.maximize_window()
     driver.implicitly_wait(10)
@@ -33,7 +35,7 @@ def test_e2e():
     assert cart.get_total() == expected_total
 
     cart.checkout()
-    cart.complete_payment()
+    cart.complete_payment(data)
 
     status = cart.get_payment_status()
     assert status == "success"  
